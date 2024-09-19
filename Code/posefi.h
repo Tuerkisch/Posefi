@@ -282,6 +282,10 @@ private:
     QBrush table_normal_color;
     QBrush table_grey_color;
     QBrush table_error_grey_color;
+    QBrush text_error_color;
+    QBrush text_normal_color;
+    QBrush text_grey_color;
+    QBrush text_error_grey_color;
 
     // left side Table Data
     std::vector<ColumnData> ActionColumnData;

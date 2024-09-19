@@ -963,10 +963,12 @@ int Posefi::UpdateActionTableCellColor(int row, int col){
                 if(usd)
                 {
                     ui->actionTable->item(r,c)->setBackground(table_normal_color);
+                    ui->actionTable->item(r,c)->setForeground(text_normal_color);
                 }
                 else
                 {
                     ui->actionTable->item(r,c)->setBackground(table_grey_color);
+                    ui->actionTable->item(r,c)->setForeground(text_grey_color);
                 }
             }
             else
@@ -974,15 +976,14 @@ int Posefi::UpdateActionTableCellColor(int row, int col){
                 if(usd)
                 {
                     ui->actionTable->item(r,c)->setBackground(table_error_color);
+                    ui->actionTable->item(r,c)->setForeground(text_error_color);
                 }
                 else
                 {
                     ui->actionTable->item(r,c)->setBackground(table_error_grey_color);
+                    ui->actionTable->item(r,c)->setForeground(text_error_grey_color);
                 }
             }
-
-            //ui->actionTable->cellWidget(r,c)->setProperty(TABLE_CORRECT_PROP, chk);
-            //ui->actionTable->cellWidget(r,c)->setProperty(TABLE_USED_PROP, usd);
         }
     }
 
@@ -1025,16 +1026,25 @@ int Posefi::UpdateWantedTableCellColor(int row, int col){
                     || (this->WantedColumnData[c].xyz_case == IS_XYZ_SECOND && !this->find_xyz_second))
                 usd = false;
             if (chk && usd)
+            {
                 this->ui->wantedPosTable->item(r,c)->setBackground(this->table_normal_color);
+                this->ui->wantedPosTable->item(r,c)->setForeground(this->text_normal_color);
+            }
             else if (!chk && usd)
+            {
                 this->ui->wantedPosTable->item(r,c)->setBackground(this->table_error_color);
+                this->ui->wantedPosTable->item(r,c)->setForeground(this->text_error_color);
+            }
             else if (chk && !usd)
+            {
                 this->ui->wantedPosTable->item(r,c)->setBackground(this->table_grey_color);
+                this->ui->wantedPosTable->item(r,c)->setForeground(this->text_grey_color);
+            }
             else
+            {
                 this->ui->wantedPosTable->item(r,c)->setBackground(this->table_error_grey_color);
-
-            //ui->wantedPosTable->cellWidget(r,c)->setProperty(TABLE_CORRECT_PROP, chk);
-            //ui->wantedPosTable->cellWidget(r,c)->setProperty(TABLE_USED_PROP, usd);
+                this->ui->wantedPosTable->item(r,c)->setForeground(this->text_error_grey_color);
+            }
         }
     }
 
@@ -3141,6 +3151,10 @@ int Posefi::SetColorTheme(){
         this->table_normal_color = QBrush(TABLE_LIGHT);
         this->table_grey_color = QBrush(TABLE_LIGHT_GREY);
         this->table_error_grey_color = QBrush(TABLE_LIGHT_ERROR_GREY);
+        this->text_error_color = QBrush(TEXT_LIGHT_ERROR);
+        this->text_normal_color = QBrush(TEXT_LIGHT);
+        this->text_grey_color = QBrush(TEXT_LIGHT_GREY);
+        this->text_error_grey_color = QBrush(TEXT_LIGHT_ERROR_GREY);
         qApp->setStyleSheet(this->light_theme_css);
         break;
 
@@ -3149,6 +3163,11 @@ int Posefi::SetColorTheme(){
         this->table_normal_color = QBrush(TABLE_DARK);
         this->table_grey_color = QBrush(TABLE_DARK_GREY);
         this->table_error_grey_color = QBrush(TABLE_DARK_ERROR_GREY);
+        this->text_error_color = QBrush(TEXT_DARK_ERROR);
+        this->text_normal_color = QBrush(TEXT_DARK);
+        this->text_grey_color = QBrush(TEXT_DARK_GREY);
+        this->text_error_grey_color = QBrush(TEXT_DARK_ERROR_GREY);
+
         if(this->ui->pauseButton->isEnabled()){
 
         }

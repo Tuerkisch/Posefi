@@ -266,17 +266,23 @@ enum WANTED_COLUMN_ORDER {WANTED_NAME, WANTED_POS1, WANTED_POS2, WANTED_TOL1, WA
 #define DARK_THEME_CSS          "style/dark_theme.css"
 #define LIGHT_THEME_CSS         "style/light_theme.css"
 #define TABLE_DARK              0xFF808080
-#define TABLE_DARK_ERROR        0xFFD08080
+#define TABLE_DARK_ERROR        0xFFE08080
 #define TABLE_DARK_GREY         0xFF606060
-#define TABLE_DARK_ERROR_GREY   0xFF906060
+#define TABLE_DARK_ERROR_GREY   0xFFA06060
+#define TEXT_DARK              0xFFFFFFFF
+#define TEXT_DARK_ERROR        0xFFFFD0D0
+#define TEXT_DARK_GREY         0xFF808080
+#define TEXT_DARK_ERROR_GREY   0xFFA08080
 #define TABLE_LIGHT             0xFFF0F0F0
 #define TABLE_LIGHT_ERROR       0xFFF0A0A0
 #define TABLE_LIGHT_GREY        0xFFAAAAAA
 #define TABLE_LIGHT_ERROR_GREY  0xFFDAAAAA
+#define TEXT_LIGHT              0xFF000000
+#define TEXT_LIGHT_ERROR        0xFFD08080
+#define TEXT_LIGHT_GREY         0xFF606060
+#define TEXT_LIGHT_ERROR_GREY   0xFF906060
 //#define TABLE_CORRECT_PROP      "correct"
 //#define TABLE_USED_PROP         "used"
-
-
 
 enum ColorTheme{
     DARK_THEME,
