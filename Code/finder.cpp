@@ -340,6 +340,12 @@ int Search::ConvertPositionData(QString* debug){
 int Search::Iteration(QString* output){
     // since this is called frequently, no extra debug checks
 
+    if(iterations_done == 0) // skip first iteration because action amounts are all 0
+    {
+        iterations_done++;
+        return SUCCESS;
+    }
+
     int return_val = SUCCESS;
 
     int costs = 0;

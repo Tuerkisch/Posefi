@@ -201,7 +201,7 @@ private:
     int FSE_PageChangeFadeInAnimation(SolutionElement* fse);
     int Disable_FSE(SolutionElement* fse);
 
-    void AddOrReplaceSolution(Search& search, std::vector<SolutionCopy>& copies, int solutionType, std::vector<uint>& freeSlots, std::vector<int>& solutionCopyIndices, int solutionIndex);
+    void AddOrReplaceSolution(Search& search, QList<SolutionCopy>& copies, int solutionType, QList<uint>& freeSlots, QList<int>& solutionCopyIndices, int solutionIndex);
 
     // Preparing and running the search
     int SetStartButtonState();
@@ -262,8 +262,8 @@ private:
     QButtonGroup findXYZ_radioButtons;
 
     // Label string groups (for switching between xy, xz and yz)
-    std::vector<QStringList> action_table_lables;
-    std::vector<QStringList> wanted_table_lables;
+    QList<QStringList> action_table_lables;
+    QList<QStringList> wanted_table_lables;
     QString* find_first_labels;
     QString* find_second_labels;
     QString* resettable_first_labels;
@@ -288,34 +288,39 @@ private:
     QBrush text_error_grey_color;
 
     // left side Table Data
-    std::vector<ColumnData> ActionColumnData;
-    std::vector<ColumnData> WantedColumnData;
-    std::vector<LeftSideElement*> LeftSideActionTable;
-    std::vector<LeftSideElement*> LeftSideWantedTable;
+    QList<ColumnData> ActionColumnData;
+    QList<ColumnData> WantedColumnData;
+    QList<LeftSideElement*> LeftSideActionTable;
+    QList<LeftSideElement*> LeftSideWantedTable;
 
     // Partial Solution pages and elements
-    std::vector<SolutionCopy> partial_solution_copies;
-    std::vector<uint> partial_solution_copies_free_slots;
+    QList<SolutionCopy> partial_solution_copies;
+    QList<uint> partial_solution_copies_free_slots;
     QTimer pse_scroll_resize_timer;
-    std::vector<PartialSolutionElement*> PartialSolutionElements;
-    std::vector<int> PSE_Order;
-    std::vector<int> ps_indices;
+    QList<PartialSolutionElement*> PartialSolutionElements;
+    QList<int> PSE_Order;
+    QList<int> ps_indices;
     int current_ps_page = -1; // -1 = no pages
     int current_ps_disable_animations = 0; // when changing a page, this keeps track of how many pse are still in fade out
     bool upcoming_ps_page_change = false;
     //SolutionsEdit* partialSolutionsEdit = nullptr;
 
     // Full Solution pages and elements
-    std::vector<SolutionCopy> full_solution_copies;
-    std::vector<uint> full_solution_copies_free_slots;
+    QList<SolutionCopy> full_solution_copies;
+    QList<uint> full_solution_copies_free_slots;
     QTimer fse_scroll_resize_timer;
-    std::vector<SolutionElement*> FullSolutionElements;
-    std::vector<int> FSE_Order;
-    std::vector<int> fs_indices;
+    QList<SolutionElement*> FullSolutionElements;
+    QList<int> FSE_Order;
+    QList<int> fs_indices;
     int current_fs_page = -1; // -1 = no pages
     int current_fs_disable_animations = 0; // when changing a page, this keeps track of how many fse are still in fade out
     bool upcoming_fs_page_change = false;
     //SolutionsEdit* fullSolutionsEdit = nullptr;
+
+    // Since this entire system is a buggy and overly complicated mess, use these functions to fix the delete solution button bug
+    void cleanSolutionMess(QList<SolutionCopy>& solCopies, QList<int>& solIndices);
+    void cleanPartialSolutionMess() { cleanSolutionMess(partial_solution_copies, ps_indices); }
+    void cleanFullSolutionMess() { cleanSolutionMess(full_solution_copies, fs_indices); }
 
     // Search
     Search main_search;
@@ -343,7 +348,7 @@ struct LeftSideElement {
     QPropertyAnimation ButtonAnimation;
     QPropertyAnimation CheckBoxAnimation;
     bool Used = true;
-    std::vector<bool> is_entry_valid;
+    QList<bool> is_entry_valid;
 };
 
 struct ColumnData{
@@ -375,7 +380,7 @@ struct SolutionElement{
     QPropertyAnimation opacity_animation;
     QGraphicsOpacityEffect opacity_effect;
     bool folded = true;
-    int order_index; // negative if element is unused
+    int order_index = -1; // negative if element is unused
     SolutionCopy* full_sol_copy = nullptr;
     SolutionCopy* part_sol_copy = nullptr;// TODO partial solution
 };
@@ -388,18 +393,18 @@ struct PartialSolutionElement : public SolutionElement{
 // copy with all data is necessary because the Search-objects clear all data when a new search is started
 // This includes all necessary solution data, including "Searched" and "Action" data. Unlike the "Solution" objects,
 // a "SolutionCopy" object is indipendent of a "Search" object as parent.
-struct SolutionCopy{
+struct SolutionCopy {
     SolutionCopy(Search& search, int solution_type, uint solution_index);
     void Replace(Search& search, int solution_type, uint solution_index);
     QString searched_name;
-    WORD searched_pos1, searched_pos2;
-    WORD default_pos1, default_pos2;
-    WORD found_pos1, found_pos2;
-    bool found_first, found_second;
-    int costs;
-    std::vector<QString> action_names;
-    std::vector<HWORD> action_angles;
-    std::vector<uint> action_amounts;
+    WORD searched_pos1 = 0, searched_pos2 = 0;
+    WORD default_pos1 = 0, default_pos2 = 0;
+    WORD found_pos1 = 0, found_pos2 = 0;
+    bool found_first = false, found_second = false;
+    int costs = 0;
+    QList<QString> action_names;
+    QList<HWORD> action_angles;
+    QList<uint> action_amounts;
     QString xyz_first_string;
     QString xyz_second_string;
 

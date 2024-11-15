@@ -152,7 +152,7 @@ enum WANTED_COLUMN_ORDER {WANTED_NAME, WANTED_POS1, WANTED_POS2, WANTED_TOL1, WA
                                     QPushButton:hover { background-color: #40E0E0FF;}"
 
 #define PSE_BOTTOM_FRAME_GAP            4
-#define SE_SOLUTION_LABEL_MOVE         15,15
+#define SE_SOLUTION_LABEL_MOVE          15,15
 #define SE_BOTTOM_ADDITIONAL_HEIGHT     20
 #define PSE_SUB_SEARCH_BUTTON_GEOMETRY  330,10,140,28
 #define PSE_SUB_SEARCH_BUTTON_TEXT      "Start Sub-Search"
@@ -196,7 +196,7 @@ enum WANTED_COLUMN_ORDER {WANTED_NAME, WANTED_POS1, WANTED_POS2, WANTED_TOL1, WA
 #define SE_ZERO_POS_STRING              "0       "  // if a coordinate is 0, replace it with this string in the solution
 #define SE_RESET_POS_STRING_1           "\n --- reset " // between the two reset strings comes x/y/z
 #define SE_RESET_POS_STRING_2           " ---\n"
-#define SE_ACTION_NAME_LENGTH           18
+#define SE_ACTION_WITHOUT_NAME_LENGTH   190
 #define SE_ACTION_ANGLE_LENGTH          4
 #define PSE_FROM_TO_STRING              "-"
 #define PSE_OF_STRING                   " of "

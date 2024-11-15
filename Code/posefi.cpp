@@ -6,6 +6,7 @@
 #include <string>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QSettings>
 
 typedef uint16_t UINT;
 bool HexCheck(QString str);
@@ -679,7 +680,6 @@ int Posefi::ArrangeLeftSideActionTable(){
 #ifndef LEFT_SIDE_ACTION_TABLE_ANIMATION
             this->LeftSideActionTable[index]->Button.setFixedSize(0,0);
             this->LeftSideActionTable[index]->CheckBox.setFixedSize(0,0);
-
 #endif
         }
     }
@@ -702,7 +702,7 @@ int Posefi::ArrangeLeftSideWantedTable(){
             this->LeftSideWantedTable[index]->CheckBox.setEnabled(true);
             this->LeftSideWantedTable[index]->CheckBox.setVisible(true);
             this->LeftSideWantedTable[index]->CheckBox.setChecked(this->LeftSideWantedTable[index]->Used);
-            this->LeftSideWantedTable[index]->CheckBox.setCheckState(Qt::CheckState::Checked);
+
 #ifndef LEFT_SIDE_WANTED_TABLE_ANIMATION
             this->LeftSideWantedTable[index]->Button.setFixedSize(REMOVE_BUTTON_WIDTH,REMOVE_BUTTON_HEIGHT);
             this->LeftSideWantedTable[index]->CheckBox.setFixedSize(USED_CHECKBOX_WIDTH,USED_CHECKBOX_HEIGHT);
@@ -713,6 +713,7 @@ int Posefi::ArrangeLeftSideWantedTable(){
             this->LeftSideWantedTable[index]->Button.setVisible(false);
             this->LeftSideWantedTable[index]->CheckBox.setEnabled(false);
             this->LeftSideWantedTable[index]->CheckBox.setVisible(false);
+            this->LeftSideWantedTable[index]->CheckBox.setCheckState(Qt::CheckState::Checked);
 #ifndef LEFT_SIDE_WANTED_TABLE_ANIMATION
             this->LeftSideWantedTable[index]->Button.setFixedSize(0,0);
             this->LeftSideWantedTable[index]->CheckBox.setFixedSize(0,0);
@@ -1634,7 +1635,7 @@ int SolutionElement::SetText(){
 
     if(this->full_sol_copy != nullptr){
         // full solution header
-        label_header = this->full_sol_copy->searched_name;
+        label_header = this->full_sol_copy->searched_name; // crash
         label_header += SE_HEADER_SEPARATOR_STRING;
         label_header += SE_HEADER_COST_STRING;
         int costs = this->full_sol_copy->costs;
@@ -1656,9 +1657,11 @@ int SolutionElement::SetText(){
         label_header += QString::number(this->part_sol_copy->costs,10);
     }
     else{
-        label_header = "error: solution == nullptr";
+        label_header = "error: solution == nullptr\nInform Türkenheimer.";
+        return NULL_POINTER;
     }
-    this->header_label.setText(label_header);
+    if(header_label.text() != label_header)
+        this->header_label.setText(label_header);
 
     WORD default1 = NULL_VALUE;
     WORD default2 = NULL_VALUE;
@@ -1793,8 +1796,11 @@ int SolutionElement::SetText(){
 
     done:
 
-    this->solution_description_label.setText(label);
-    this->solution_description_label.adjustSize();
+    if(this->solution_description_label.text() != label)
+    {
+        this->solution_description_label.setText(label);
+        this->solution_description_label.adjustSize();
+    }
     bottom_frame_height = SE_BOTTOM_ADDITIONAL_HEIGHT;
     bottom_frame_height += this->solution_description_label.height();
     this->bottom_frame.setFixedHeight(bottom_frame_height);
@@ -1813,16 +1819,27 @@ int SolutionElement::SetText(){
         if(action_count > sc->action_names.size())
             action_count = sc->action_names.size();
     }
+
+    int availableActionNameWidth = bottom_frame.width() - SE_ACTION_WITHOUT_NAME_LENGTH;
+    QString longestActionName;
+    for(uint i = 0; i < action_count; i++)
+    {
+        if(sc->action_names[i].size() > longestActionName.size())
+            longestActionName = sc->action_names[i];
+    }
+    longestActionName = solution_description_label.fontMetrics().elidedText(longestActionName, Qt::TextElideMode::ElideRight, availableActionNameWidth);
+    int actionNameCharLimit = longestActionName.length();
+
     for(uint i = 0; i < action_count; i++){
         label += SE_ACTION_PREFIX_STRING;
         QString temp_str = sc->action_names[i];
-        if(temp_str.size() > SE_ACTION_NAME_LENGTH){
-            temp_str = temp_str.left(SE_ACTION_NAME_LENGTH-3);
+        if(temp_str.size() > actionNameCharLimit){
+            temp_str = temp_str.left(actionNameCharLimit-3);
             temp_str += "...";
         }
-        else if(temp_str.size() < SE_ACTION_NAME_LENGTH){
+        else if(temp_str.size() < actionNameCharLimit){
             QString temp_str2;
-            for(uint j = temp_str.size(); j < SE_ACTION_NAME_LENGTH; j++){
+            for(uint j = temp_str.size(); j < actionNameCharLimit; j++){
                 temp_str2 += " ";
             }
 #ifdef SE_ACTION_NAME_RIGHT_ALIGNED    // action name right aligned
@@ -2067,6 +2084,10 @@ int Posefi::PartialSolutionDeleteButton_press(int element_index){
         return ARRAY_OUT_OF_RANGE;
     }
     PartialSolutionElement* pse = this->PartialSolutionElements[element_index];
+
+    // TODO fix bug
+    //pse->header_label.setText("error: displaying old solution. Delete all and restart search to fix the problem.");
+
     int order_index = pse->order_index;
     if(order_index < 0){
         qInfo() << "ARRAY_OUT_OF_RANGE error in Posefi::PartialSolutionDeleteButton_press; order_index is negative";
@@ -2104,14 +2125,13 @@ int Posefi::PartialSolutionDeleteButton_press(int element_index){
     pse->opacity_animation.start();
     this->current_ps_disable_animations++;
 
-    // remove element from the ps_indices array
     if(pse->part_sol_copy != nullptr){
         uint ps_indices_index = this->current_ps_page * this->solutions_per_page + order_index;
-        partial_solution_copies_free_slots.push_back(ps_indices[ps_indices_index]);
-        for(uint i = ps_indices_index + 1; i < this->ps_indices.size(); i++){
-            this->ps_indices[i-1] = this->ps_indices[i];
-        }
-        this->ps_indices.resize(this->ps_indices.size()-1);
+
+        //ps_indices.removeAt(ps_indices_index);// remove this once cleanSolutionMess is done
+        // Bug workaround
+        ps_indices[ps_indices_index] = (ps_indices[ps_indices_index] * -1) -1;
+        cleanPartialSolutionMess();
     }
 
     pse->delete_button.setEnabled(false);
@@ -2129,6 +2149,10 @@ int Posefi::FullSolutionDeleteButton_press(int element_index){
         return ARRAY_OUT_OF_RANGE;
     }
     SolutionElement* fse = this->FullSolutionElements[element_index];
+
+    // TODO fix bug
+    //fse->header_label.setText("error: displaying old solution. Delete all and restart search to fix the problem.");
+
     int order_index = fse->order_index;
     if(order_index < 0){
         qInfo() << "ARRAY_OUT_OF_RANGE error in Posefi::FullSolutionDeleteButton_press; order_index is negative";
@@ -2166,14 +2190,17 @@ int Posefi::FullSolutionDeleteButton_press(int element_index){
     fse->opacity_animation.start();
     this->current_fs_disable_animations++;
 
+
+
+
     // remove element from the fs_indices array
     if(fse->full_sol_copy != nullptr){
         uint fs_indices_index = this->current_fs_page * this->solutions_per_page + order_index;
-        full_solution_copies_free_slots.push_back(fs_indices[fs_indices_index]);
-        for(uint i = fs_indices_index + 1; i < this->fs_indices.size(); i++){
-            this->fs_indices[i-1] = this->fs_indices[i];
-        }
-        this->fs_indices.resize(this->fs_indices.size()-1);
+
+        //fs_indices.removeAt(fs_indices_index);// remove this once cleanFullSolutionMess is done
+        // Bug workaround
+        fs_indices[fs_indices_index] = (fs_indices[fs_indices_index] * -1) -1;
+        cleanFullSolutionMess();
     }
 
     fse->delete_button.setEnabled(false);
@@ -2184,16 +2211,48 @@ int Posefi::FullSolutionDeleteButton_press(int element_index){
     return SUCCESS;
 }
 
+void Posefi::cleanSolutionMess(QList<SolutionCopy>& solCopies, QList<int>& solIndices)
+{
+    int deletedIdx = -1;
+
+    for(int i = 0; i < solIndices.size(); i++)
+    {
+        if(solIndices[i] < 0)
+        {
+            deletedIdx = i;
+            break;
+        }
+    }
+    if(deletedIdx == -1)
+    {
+        qInfo() << "error in Posefi::cleanSolutionMess";
+        return;
+    }
+
+    int deletedSolCopyIdx = solIndices[deletedIdx] * -1 - 1;
+    for(int i = 0; i < solIndices.size(); i++)
+    {
+        if(solIndices[i] > deletedSolCopyIdx)
+        {
+            solIndices[i]--;
+        }
+    }
+    solIndices.removeAt(deletedIdx);
+    solCopies.removeAt(deletedSolCopyIdx);
+}
+
 int Posefi::ResizePartialSolutionsWidth(){
     int top_frame_width = this->ui->scrollAreaPartialSolutionsContents->width() - 2*SE_TOP_FRAME_GAP;
     int bottom_frame_width = top_frame_width - 2*PSE_BOTTOM_FRAME_GAP;
     for(uint i = 0; i < this->PartialSolutionElements.size(); i++){
         PartialSolutionElement* pse = this->PartialSolutionElements[i];
         pse->top_frame.setFixedWidth(top_frame_width);
+        pse->header_label.setFixedWidth(top_frame_width - 2 * pse->header_label.x());
         pse->fold_button.setFixedWidth(top_frame_width - SE_FOLD_BUTTON_GAP_RIGHT);
         pse->bottom_frame.setFixedWidth(bottom_frame_width);
         int del_x = pse->top_frame.width() - pse->delete_button.width() - PSE_DELETE_BUTTON_GAP_RIGHT;
         pse->delete_button.move(del_x,PSE_DELETE_BUTTON_Y);
+        //pse->SetText();
     }
     return SUCCESS;
 }
@@ -2204,10 +2263,19 @@ int Posefi::ResizeFullSolutionsWidth(){
     for(uint i = 0; i < this->FullSolutionElements.size(); i++){
         SolutionElement* fse = this->FullSolutionElements[i];
         fse->top_frame.setFixedWidth(top_frame_width);
+        fse->header_label.setFixedWidth(top_frame_width - 2 * fse->header_label.x());
         fse->fold_button.setFixedWidth(top_frame_width - SE_FOLD_BUTTON_GAP_RIGHT);
         fse->bottom_frame.setFixedWidth(bottom_frame_width);
         int del_x = fse->top_frame.width() - fse->delete_button.width() - PSE_DELETE_BUTTON_GAP_RIGHT;
         fse->delete_button.move(del_x,FSE_DELETE_BUTTON_Y);
+
+        //int nameCount = fse->full_sol_copy->action_names.size();
+        //int amountCount = fse->full_sol_copy->action_amounts.size();
+        //int angleCount = fse->full_sol_copy->action_angles.size();
+        //if(nameCount != amountCount || nameCount != angleCount)
+        //    continue;
+        //fse->SetText();
+        // TODO bugged
     }
     return SUCCESS;
 }
@@ -3225,6 +3293,15 @@ int Posefi::SaveInputs()
     StreamInputsToFile(out);
     lastDirectory = fileName;
     file.close();
+
+    if(!fileName.isEmpty())
+    {
+        qInfo() << fileName;
+        lastDirectory = fileName;
+        QSettings settings("Posefi");
+        settings.setValue("dir", QVariant(lastDirectory));
+    }
+
     return SUCCESS;
 }
 
@@ -3299,7 +3376,14 @@ int Posefi::LoadInputs()
     }
     QTextStream in(&file);
     StreamInputsFromFile(in);
-    lastDirectory = fileName;
+
+    if(!fileName.isEmpty())
+    {
+        lastDirectory = fileName;
+        QSettings settings("Posefi");
+        settings.setValue("dir", QVariant(lastDirectory));
+    }
+
     return SUCCESS;
 }
 
@@ -3414,8 +3498,10 @@ void Posefi::StreamInputsFromFile(QTextStream& stream)
 
 void Posefi::LoadSettings()
 {
-
-
+    QSettings settings("Posefi");
+    QVariant dirVar = settings.value("dir");
+    if(dirVar.isValid())
+        lastDirectory = dirVar.toString();
 }
 void Posefi::SaveSettings()
 {
@@ -3819,7 +3905,7 @@ int Posefi::RunningMainSearch(){
     return SUCCESS;
 }
 
-void Posefi::AddOrReplaceSolution(Search& search, std::vector<SolutionCopy>& copies, int solutionType, std::vector<uint>& freeSlots, std::vector<int>& solutionCopyIndices, int solutionIndex)
+void Posefi::AddOrReplaceSolution(Search& search, QList<SolutionCopy>& copies, int solutionType, QList<uint>& freeSlots, QList<int>& solutionCopyIndices, int solutionIndex)
 {
     if(freeSlots.empty())
     {
