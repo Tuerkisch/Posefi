@@ -135,11 +135,11 @@ int Search::SetDefaultPosition(WORD default_first, WORD default_second, bool sea
         add_to_1st = true;
         add_to_2nd = false;
     }
-    // case: both searched and at least one resettable -> always calculate a position if the other position is resettable
+    // case: both searched and at least one resettable -> always calculate a position if its position is resettable
     // (in case both are resettable, an iteration will take twice the time, but at the same time there are twice as many chances for a hit)
     else {
-        add_to_1st = this->second_resettable;
-        add_to_2nd = this->first_resettable;
+        add_to_1st = this->first_resettable;
+        add_to_2nd = this->second_resettable;
     }
 
     return SUCCESS;

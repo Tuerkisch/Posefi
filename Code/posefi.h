@@ -19,6 +19,8 @@
 #include <QLineEdit>
 #include <QGraphicsOpacityEffect>
 #include <QEvent>
+#include <QProgressBar>
+#include <QTableWidget>
 #include "finder.h"
 
 //#define LEFT_SIDE_ACTION_TABLE_ANIMATION
@@ -329,6 +331,30 @@ private:
 
     // Save Data
     QString lastDirectory;
+
+
+    struct SubSearchWidget
+    {
+        SubSearchWidget(QWidget* parent);
+
+        QLabel* defaultPosLabel;
+        QLabel* defaultCoordinateLabel;
+        AutoSelectLineEdit* defaultPosEdit;
+        QPushButton* startBtn;
+        QPushButton* pauseBtn;
+        QPushButton* stopBtn;
+        QPushButton* updateActionsBtn;
+        QProgressBar* progressBar;
+        QTableWidget* wantedTable;
+        QTableView* actionTable;
+
+        void setPartialSolution(const SolutionCopy* sol);
+
+    private:
+        SolutionCopy* partialSolutionCopy = nullptr;
+    };
+    SubSearchWidget* subSearchWidget;
+
 };
 
 class AutoSelectLineEdit : public QLineEdit {
@@ -395,7 +421,12 @@ struct PartialSolutionElement : public SolutionElement{
 // a "SolutionCopy" object is indipendent of a "Search" object as parent.
 struct SolutionCopy {
     SolutionCopy(Search& search, int solution_type, uint solution_index);
+    SolutionCopy(){}
+    SolutionCopy(const SolutionCopy* other);
+
     void Replace(Search& search, int solution_type, uint solution_index);
+    void CopyData(const SolutionCopy* other);
+
     QString searched_name;
     WORD searched_pos1 = 0, searched_pos2 = 0;
     WORD default_pos1 = 0, default_pos2 = 0;
@@ -411,34 +442,6 @@ struct SolutionCopy {
 private:
     void CopyData(Search& search, int solution_type, uint solution_index);
 };
-/*
-class SearchEvent : public QEvent
-{
-public:
-    QEvent::Type SearchEventType = QEvent::User;
 
-    SearchEvent(QEvent::Type type) :
-        QEvent(type)
-    {}
-};*/
-
-/*
-class SolutionsEdit : public QObject
-{
-    Q_OBJECT
-
-public:
-    SolutionsEdit(QWidget* parent, std::vector<SolutionCopy>* solutionCopies, QToolButton* deleteBtn, QToolButton* sortBtn);
-
-
-public slots:
-
-
-private:
-    std::vector<SolutionCopy>* m_solutions;
-
-    QToolButton* m_deleteBtn;
-    QToolButton* m_sortBtn;
-};*/
 
 #endif // POSEFI_H

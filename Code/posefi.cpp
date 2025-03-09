@@ -332,6 +332,10 @@ int Posefi::LinkSignals(){
     // Search timer
     connect(&this->main_search_timer, SIGNAL(timeout()), this, SLOT(RunningMainSearch()));
 
+
+    // -------- Sub Search ------------------------
+    //subSearchWidget = new SubSearchWidget(ui->scrollAreaSubSearchContents);
+
     return SUCCESS;
 }
 
@@ -3929,6 +3933,30 @@ SolutionCopy::SolutionCopy(Search& search, int solution_type, uint solution_inde
     CopyData(search, solution_type, solution_index);
 }
 
+SolutionCopy::SolutionCopy(const SolutionCopy* other)
+{
+    CopyData(other);
+}
+
+void SolutionCopy::CopyData(const SolutionCopy* other)
+{
+    searched_name = other->searched_name;
+    searched_pos1 = other->searched_pos1;
+    searched_pos2 = other->searched_pos2;
+    default_pos1 = other->default_pos1;
+    default_pos2 = other->default_pos2;
+    found_pos1 = other->found_pos1;
+    found_pos2 = other->found_pos2;
+    found_first = other->found_first;
+    found_second = other->found_second;
+    costs = other->costs;
+    action_names = other->action_names;
+    action_angles = other->action_angles;
+    action_amounts = other->action_amounts;
+    xyz_first_string = other->xyz_first_string;
+    xyz_second_string = other->xyz_second_string;
+}
+
 void SolutionCopy::Replace(Search& search, int solution_type, uint solution_index)
 {
     action_names.clear();
@@ -4283,6 +4311,70 @@ void Posefi::sortFullSolutionsByActionCount()
         PauseButton_press();
     //if(subRunning)
     // TODO pause sub Search
+}
+
+
+// ------------- Sub Search Struct ----------------------------------------
+Posefi::SubSearchWidget::SubSearchWidget(QWidget* parent)
+{
+    defaultPosLabel = new QLabel(parent);
+    defaultCoordinateLabel = new QLabel(parent);
+    defaultPosEdit = new AutoSelectLineEdit(parent);
+    defaultPosEdit->setAlignment(Qt::AlignCenter);
+    startBtn = new QPushButton(parent);;
+    pauseBtn = new QPushButton(parent);;
+    stopBtn = new QPushButton(parent);;
+    updateActionsBtn = new QPushButton(parent);;
+    progressBar = new QProgressBar(parent);;
+    wantedTable = new QTableWidget(parent);;
+    actionTable = new QTableView(parent);;
+
+    defaultPosLabel->setGeometry(340,10,111,16);
+    defaultPosLabel->setText("Default Position");
+    defaultCoordinateLabel->setGeometry(320,32,16,16);
+    defaultPosEdit->setGeometry(420,32,65,23);
+
+    //defaultCoordinateLabel->setText("x:");              //
+
+    SolutionCopy testSol;
+    testSol.searched_name = "searched name";
+    testSol.searched_pos1 = 0x41234567;
+    testSol.searched_pos2 = 0x41234567;
+    testSol.default_pos1 = 0x41234567;
+    testSol.default_pos2 = 0x41234567;
+    testSol.found_pos1 = 0x41234567;
+    testSol.found_pos2 = 0x41234567;
+    testSol.found_first = true;
+    testSol.found_second = false;
+    testSol.costs = 69;
+    testSol.action_names = {"action1", "action2", "action3"};
+    testSol.action_angles = {0x4000, 0x8000, 0xC000};
+    testSol.action_amounts = {9, 6 , 3};
+    testSol.xyz_first_string = "x:";
+    testSol.xyz_second_string = "z:";
+
+    setPartialSolution(&testSol);
+
+}
+
+void Posefi::SubSearchWidget::setPartialSolution(const SolutionCopy* sol)
+{
+    if (!partialSolutionCopy)
+        partialSolutionCopy = new SolutionCopy(sol);
+    else
+        partialSolutionCopy->CopyData(sol);
+
+    if(partialSolutionCopy->found_first)
+    {
+        defaultCoordinateLabel->setText(partialSolutionCopy->xyz_second_string);
+        defaultPosEdit->setText(QString::number(partialSolutionCopy->found_pos2, 16));
+    }
+
+    else
+    {
+        defaultCoordinateLabel->setText(partialSolutionCopy->xyz_first_string);
+        defaultPosEdit->setText(QString::number(partialSolutionCopy->found_pos1, 16));
+    }
 }
 
 
