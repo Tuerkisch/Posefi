@@ -1745,13 +1745,13 @@ int SolutionElement::SetText(){
     label += SE_SEARCHED_POS_STRING;
     if(searched1 != NULL_VALUE){
         label += xyz_first_str + SE_COLON_STRING;
-        label += (searched1 != 0) ? QString::number(searched1,16) : SE_ZERO_POS_STRING;
+        label += (searched1 != 0) ? AdjustHexString(QString::number(searched1,16), 8, "0") : SE_ZERO_POS_STRING;
         if(searched2 != NULL_VALUE)
             label += SE_SPACE_STRING;
     }
     if(searched2 != NULL_VALUE){
         label += xyz_second_str + SE_COLON_STRING;
-        label += (searched2 != 0) ? QString::number(searched2,16) : SE_ZERO_POS_STRING;
+        label += (searched2 != 0) ? AdjustHexString(QString::number(searched2,16), 8, "0") : SE_ZERO_POS_STRING;
     }
 
     // resulted position
@@ -1832,9 +1832,32 @@ int SolutionElement::SetText(){
             longestActionName = sc->action_names[i];
     }
     longestActionName = solution_description_label.fontMetrics().elidedText(longestActionName, Qt::TextElideMode::ElideRight, availableActionNameWidth);
-    int actionNameCharLimit = longestActionName.length();
+    int actionNameCharLimit = longestActionName.length();// TODO this is probably not nexessary with the new format
 
-    for(uint i = 0; i < action_count; i++){
+    HWORD currentAngle = 0;
+    QString temp_str;
+    for(uint i = 0; i < action_count; i++)
+    {
+        if (i == 0 || currentAngle != sc->action_angles[i])
+        {
+            if(i > 0)
+                label += "\n\n";
+
+            currentAngle = sc->action_angles[i];
+            temp_str = QString::number(currentAngle,16);
+            if(temp_str.size() != SE_ACTION_ANGLE_LENGTH)
+                temp_str = AdjustHexString(temp_str,SE_ACTION_ANGLE_LENGTH);
+            label += "angle " + temp_str + ":   ";
+        }
+        else
+        {
+            label += "\n              ";
+        }
+
+        if (sc->action_amounts[i] < 10)
+            label += " ";
+        label += QString::number(sc->action_amounts[i],10) + " ";
+
         label += SE_ACTION_PREFIX_STRING;
         QString temp_str = sc->action_names[i];
         if(temp_str.size() > actionNameCharLimit){
@@ -1854,15 +1877,6 @@ int SolutionElement::SetText(){
 #endif
         }
         label += temp_str;
-        label += SE_ACTION_ANGLE_STRING;
-        temp_str = QString::number(sc->action_angles[i],16);
-        if(temp_str.size() != SE_ACTION_ANGLE_LENGTH)
-            temp_str = AdjustHexString(temp_str,SE_ACTION_ANGLE_LENGTH);
-        label += temp_str;
-        label += SE_ACTION_AMOUNT_STRING;
-        label += QString::number(sc->action_amounts[i],10);
-        if(i != action_count-1)
-            label += "\n";
     }
 
     // -------------------------------
@@ -4003,7 +4017,12 @@ void SolutionCopy::CopyData(Search& search, int solution_type, uint solution_ind
     delete[] str_1;
     delete[] str_2;
 
-    for(uint i = 0; i < search.actions.size(); i++){
+    QStringList names;
+    QList<HWORD> angles;
+    QList<uint> amounts;
+
+    for (uint i = 0; i < search.actions.size(); i++)
+    {
         int amo = sol->action_amounts[i];
         if(amo == 0)
             continue;
@@ -4017,10 +4036,26 @@ void SolutionCopy::CopyData(Search& search, int solution_type, uint solution_ind
             else
                 ang += 0x8000;
         }
-        this->action_names.push_back(nam);
-        this->action_angles.push_back(ang);
-        this->action_amounts.push_back((uint)amo);
+        names.push_back(nam);
+        angles.push_back(ang);
+        amounts.push_back((uint)amo);
     }
+
+    QList<int> actionOrder;
+    for (uint i = 0; i < angles.size(); i++) actionOrder.append(i);
+    std::sort(actionOrder.begin(), actionOrder.end(), [angles] (const int& a, const int& b)
+    {
+        return angles[a] < angles[b];
+    });
+
+    for (int idx : actionOrder)
+    {
+        action_names.push_back(names[idx]);
+        action_angles.push_back(angles[idx]);
+        action_amounts.push_back((uint)amounts[idx]);
+    }
+
+
 }
 
 // ----------------------- Edit solutions -----------------------
